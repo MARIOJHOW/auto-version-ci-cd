@@ -2,8 +2,7 @@ name: Auto Version Increment
 
 on:
   push:
-    branches:
-      - [cite_start]main # Aciona a automação quando um commit é enviado para a 'main' [cite: 42]
+    branches: [ main ] # Aciona a automação quando um commit é enviado para a 'main'
 
 jobs:
   auto-version:
@@ -11,7 +10,7 @@ jobs:
     # Ela impede que o workflow rode se o commit for feito pelo próprio bot.
     if: github.actor != 'github-actions[bot]'
 
-    [cite_start]runs-on: ubuntu-latest # Roda em uma máquina virtual Ubuntu [cite: 43]
+    runs-on: ubuntu-latest # Roda em uma máquina virtual Ubuntu
 
     steps:
       # 1. Faz o "checkout" do código do seu repositório para a máquina virtual
@@ -24,23 +23,23 @@ jobs:
       # 2. Configura o usuário Git para ser o "CI Bot"
       - name: Configure Git
         run: |
-          git config --global user.name 'github-actions[bot]' # Nome do bot 
+          git config --global user.name 'github-actions[bot]' # Nome do bot
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       # 3. Lê, incrementa e escreve a nova versão
       - name: Increment version
         run: |
-          # Lê o conteúdo do arquivo version.txt (ex: v0.0.1) [cite: 44]
+          # Lê o conteúdo do arquivo version.txt (ex: v0.0.1)
           CURRENT_VERSION=$(cat version.txt)
           echo "Versão Atual: $CURRENT_VERSION"
 
-          # Quebra a versão em partes (v0.0.1) e incrementa a última parte [cite: 45]
+          # Quebra a versão em partes (v0.0.1) e incrementa a última parte
           # Usando 'awk' para separar por '.' e incrementar o último campo ($NF)
           NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$NF = $NF + 1; print}')
 
           echo "Nova Versão: $NEW_VERSION"
 
-          # Salva o novo valor (ex: v0.0.2) de volta no arquivo [cite: 45, 46]
+          # Salva o novo valor (ex: v0.0.2) de volta no arquivo
           echo $NEW_VERSION > version.txt
 
           # Disponibiliza a nova versão para o próximo passo
@@ -50,7 +49,7 @@ jobs:
       - name: Commit and push new version
         run: |
           git add version.txt
-          # Realiza o commit automático com a mensagem [cite: 47]
+          # Realiza o commit automático com a mensagem
           git commit -m "ci: Increment version to ${{ env.NEW_VERSION }}"
-          # Faz o push da nova versão para a branch 'main' [cite: 48]
+          # Faz o push da nova versão para a branch 'main'
           git push

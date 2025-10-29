@@ -1,0 +1,56 @@
+name: Auto Version Increment
+
+on:
+  push:
+    branches:
+      - [cite_start]main # Aciona a automação quando um commit é enviado para a 'main' [cite: 42]
+
+jobs:
+  auto-version:
+    # Esta linha é CRUCIAL para evitar um loop infinito.
+    # Ela impede que o workflow rode se o commit for feito pelo próprio bot.
+    if: github.actor != 'github-actions[bot]'
+
+    [cite_start]runs-on: ubuntu-latest # Roda em uma máquina virtual Ubuntu [cite: 43]
+
+    steps:
+      # 1. Faz o "checkout" do código do seu repositório para a máquina virtual
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          # Usamos o GITHUB_TOKEN para permitir que a action faça o push de volta
+          token: ${{ secrets.GITHUB_TOKEN }} 
+
+      # 2. Configura o usuário Git para ser o "CI Bot"
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]' # Nome do bot 
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      # 3. Lê, incrementa e escreve a nova versão
+      - name: Increment version
+        run: |
+          # Lê o conteúdo do arquivo version.txt (ex: v0.0.1) [cite: 44]
+          CURRENT_VERSION=$(cat version.txt)
+          echo "Versão Atual: $CURRENT_VERSION"
+
+          # Quebra a versão em partes (v0.0.1) e incrementa a última parte [cite: 45]
+          # Usando 'awk' para separar por '.' e incrementar o último campo ($NF)
+          NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. -v OFS=. '{$NF = $NF + 1; print}')
+
+          echo "Nova Versão: $NEW_VERSION"
+
+          # Salva o novo valor (ex: v0.0.2) de volta no arquivo [cite: 45, 46]
+          echo $NEW_VERSION > version.txt
+
+          # Disponibiliza a nova versão para o próximo passo
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+
+      # 4. Faz o commit e push da nova versão
+      - name: Commit and push new version
+        run: |
+          git add version.txt
+          # Realiza o commit automático com a mensagem [cite: 47]
+          git commit -m "ci: Increment version to ${{ env.NEW_VERSION }}"
+          # Faz o push da nova versão para a branch 'main' [cite: 48]
+          git push

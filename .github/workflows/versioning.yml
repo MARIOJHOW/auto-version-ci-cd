@@ -3,7 +3,7 @@ name: Auto Version Increment
 on:
   push:
     branches: [ main ] # Aciona a automação quando um commit é enviado para a 'main'
-
+permissions: contents: write
 jobs:
   auto-version:
     # Esta linha é CRUCIAL para evitar um loop infinito.
